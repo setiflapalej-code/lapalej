@@ -12,7 +12,9 @@ export async function getNews() {
     const db = getSupabaseBrowserClient()
     const { data, error } = await db
         .from("news")
-        .select("id, title, excerpt, content, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
+        .select("id, title, excerpt, author, category, type, icon, color, bg_color, image, views, likes, featured, published_at, created_at")
+        // NOTE: `content` is intentionally excluded from list queries to avoid over-fetching.
+        // Full content is loaded lazily via getNewsItem() or fetchNewsContent() when the user opens an article.
         .not("published_at", "is", null)
         .order("published_at", { ascending: false })
 
