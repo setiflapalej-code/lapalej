@@ -85,7 +85,11 @@ export function TreasureMapActivities({ session }: Props = {}) {
         setError(null)
         const data = await fetchAllData()
         if (data && data.activities && Array.isArray(data.activities)) {
-          setActivities(data.activities)
+          const normalized = data.activities.map((a: any) => ({
+             ...a,
+             images: typeof a.images === 'string' ? (a.images ? [a.images] : []) : (Array.isArray(a.images) ? a.images : [])
+          }))
+          setActivities(normalized)
         } else {
           throw new Error("البيانات المستلمة غير صحيحة")
         }

@@ -41,7 +41,7 @@ export default async function AdminPage() {
     ...a,
     type: a.categories?.[0] || "عام",
     capacity: a.max_participants || 0,
-    image: (a.images && a.images.length > 0) ? a.images[0] : "/placeholder.svg",
+    image: typeof a.images === 'string' ? a.images : ((a.images && a.images.length > 0) ? a.images[0] : "/placeholder.svg"),
     activityTemplate: a.template || "announcement",
     registered: 0,
     createdAt: a.created_at

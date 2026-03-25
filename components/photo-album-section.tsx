@@ -11,7 +11,7 @@ export function PhotoAlbumSection({ activities = [] }: { activities: Activity[] 
 
     // Extract all images from activities
     const extractedImages = activities
-        .flatMap((activity) => activity.images || [])
+        .flatMap((activity) => typeof activity.images === 'string' ? (activity.images ? [activity.images] : []) : (activity.images || []))
         .filter(Boolean)
 
     // Ensure we have exactly 7 images, falling back to a placeholder

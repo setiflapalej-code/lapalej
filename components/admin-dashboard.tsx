@@ -12,6 +12,7 @@ import {
 
 import { useRouter } from "next/navigation"
 import { adminLogout } from "@/services/AdminAuthService"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 // --- Export Helpers ---
 const exportToWord = (htmlContent: string, filename: string) => {
@@ -293,35 +294,6 @@ export function AdminDashboard({
     }
   }
 
-  const handleImageOptimize = (file: File, callback: (url: string) => void) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const MAX_WIDTH = 1200;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > MAX_WIDTH) {
-          height = Math.floor(height * (MAX_WIDTH / width));
-          width = MAX_WIDTH;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          // Convert to highly optimized WebP format to save space and bandwidth
-          const dataUrl = canvas.toDataURL("image/webp", 0.8);
-          callback(dataUrl);
-        }
-      };
-      if (e.target?.result) img.src = e.target.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
   const [showPassword, setShowPassword] = useState(false)
   const [activeSection, setActiveSection] = useState("dashboard")
 
@@ -336,6 +308,7 @@ export function AdminDashboard({
   const [expandedRegistrationId, setExpandedRegistrationId] = useState<string | null>(null)
   const [newCategoryInput, setNewCategoryInput] = useState("")
 
+  const [activityFile, setActivityFile] = useState<File | null>(null)
   const [isAddingActivity, setIsAddingActivity] = useState(false)
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null)
   const [newActivity, setNewActivity] = useState<Partial<Activity>>({
@@ -372,6 +345,7 @@ export function AdminDashboard({
 
   const [newsArticles, setNewsArticles] = useState<NewsArticle[]>(initialNews)
 
+  const [newsFile, setNewsFile] = useState<File | null>(null)
   const [isAddingNews, setIsAddingNews] = useState(false)
   const [editingNews, setEditingNews] = useState<NewsArticle | null>(null)
 
@@ -568,7 +542,8 @@ export function AdminDashboard({
 
   const templateNeedsCategories = (t?: ActivityTemplate) => t === "special"
 
-  const resetNewActivity = () =>
+  const resetNewActivity = () => {
+    setActivityFile(null)
     setNewActivity({
       title: "",
       description: "",
@@ -582,11 +557,29 @@ export function AdminDashboard({
       activityTemplate: "announcement",
       categories: [],
     })
+  }
 
   const handleAddActivity = async () => {
     if (newActivity.title && newActivity.description) {
       setIsActivityActionLoading(true)
       try {
+        let imageUrl = newActivity.image || "";
+        if (activityFile) {
+          const supabase = getSupabaseBrowserClient();
+          const fileExt = activityFile.name.split('.').pop();
+          const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+          const filePath = `${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('documents')
+            .upload(filePath, activityFile);
+            
+          if (uploadError) throw new Error("فشل رفع الصورة: " + uploadError.message);
+          
+          const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+          imageUrl = publicUrlData.publicUrl;
+        }
+
         const createdData = await addActivityAction({
           title: newActivity.title,
           description: newActivity.description,
@@ -595,7 +588,7 @@ export function AdminDashboard({
           duration: newActivity.duration || "يوم واحد",
           max_participants: newActivity.capacity || 0,
           status: newActivity.status || "upcoming",
-          images: newActivity.image ? [newActivity.image] : [],
+          images: imageUrl || "",
           template: newActivity.activityTemplate || "announcement",
           categories: [newActivity.type || "عام", ...(newActivity.categories || [])],
         } as any)
@@ -606,7 +599,7 @@ export function AdminDashboard({
           id: (createdData as any).id,
           type: newActivity.type || "عام",
           capacity: newActivity.capacity || 0,
-          image: newActivity.image || "/placeholder.svg",
+          image: imageUrl || "/placeholder.svg",
           activityTemplate: newActivity.activityTemplate || "announcement",
           registered: 0
         } as unknown as Activity
@@ -631,6 +624,23 @@ export function AdminDashboard({
     if (editingActivity && newActivity.title && newActivity.description) {
       setIsActivityActionLoading(true)
       try {
+        let imageUrl = newActivity.image || "";
+        if (activityFile) {
+          const supabase = getSupabaseBrowserClient();
+          const fileExt = activityFile.name.split('.').pop();
+          const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+          const filePath = `${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('documents')
+            .upload(filePath, activityFile);
+            
+          if (uploadError) throw new Error("فشل رفع الصورة: " + uploadError.message);
+          
+          const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+          imageUrl = publicUrlData.publicUrl;
+        }
+
         const updatedData = await editActivityAction(editingActivity.id, {
           title: newActivity.title,
           description: newActivity.description,
@@ -639,14 +649,14 @@ export function AdminDashboard({
           duration: newActivity.duration,
           max_participants: newActivity.capacity,
           status: newActivity.status,
-          images: newActivity.image ? [newActivity.image] : [],
+          images: imageUrl || "",
           template: newActivity.activityTemplate,
           categories: newActivity.type ? [newActivity.type, ...(newActivity.categories || [])] : newActivity.categories,
         } as any)
 
         setActivities(
           activities.map((activity) =>
-            activity.id === editingActivity.id ? ({ ...activity, ...newActivity } as Activity) : activity
+            activity.id === editingActivity.id ? ({ ...activity, ...newActivity, image: imageUrl || "/placeholder.svg" } as Activity) : activity
           )
         )
         setEditingActivity(null)
@@ -875,6 +885,23 @@ export function AdminDashboard({
     if (newNews.title && newNews.content) {
       setIsNewsActionLoading(true)
       try {
+        let imageUrl = newNews.image || "/placeholder.svg";
+        if (newsFile) {
+          const supabase = getSupabaseBrowserClient();
+          const fileExt = newsFile.name.split('.').pop();
+          const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+          const filePath = `${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('documents')
+            .upload(filePath, newsFile);
+            
+          if (uploadError) throw new Error("فشل رفع الصورة: " + uploadError.message);
+          
+          const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+          imageUrl = publicUrlData.publicUrl;
+        }
+
         const isPublished = newNews.status === "published"
         const createdData = await addNewsAction({
           title: newNews.title,
@@ -883,7 +910,7 @@ export function AdminDashboard({
           category: newNews.category || "عام",
           author: newNews.author || "إدارة الجمعية",
           published_at: isPublished ? new Date().toISOString() : undefined,
-          image: newNews.image || "/placeholder.svg",
+          image: imageUrl,
           featured: newNews.featured || false,
         } as any)
 
@@ -895,6 +922,7 @@ export function AdminDashboard({
           views: 0
         } as unknown as NewsArticle
         setNewsArticles([article, ...newsArticles])
+        setNewsFile(null)
         setNewNews({
           title: "",
           content: "",
@@ -925,6 +953,23 @@ export function AdminDashboard({
     if (editingNews && newNews.title && newNews.content) {
       setIsNewsActionLoading(true)
       try {
+        let imageUrl = newNews.image;
+        if (newsFile) {
+          const supabase = getSupabaseBrowserClient();
+          const fileExt = newsFile.name.split('.').pop();
+          const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+          const filePath = `${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('documents')
+            .upload(filePath, newsFile);
+            
+          if (uploadError) throw new Error("فشل رفع الصورة: " + uploadError.message);
+          
+          const { data: publicUrlData } = supabase.storage.from('documents').getPublicUrl(filePath);
+          imageUrl = publicUrlData.publicUrl;
+        }
+
         const isPublished = newNews.status === "published"
         const updatedData = await editNewsAction(editingNews.id, {
           title: newNews.title,
@@ -933,7 +978,7 @@ export function AdminDashboard({
           category: newNews.category,
           author: newNews.author,
           published_at: isPublished ? (newNews.publishDate || new Date().toISOString()) : undefined,
-          image: newNews.image,
+          image: imageUrl,
           featured: newNews.featured,
         } as any)
 
@@ -942,10 +987,12 @@ export function AdminDashboard({
             article.id === editingNews.id ? ({
               ...article,
               ...newNews,
+              image: imageUrl || "/placeholder.svg",
               publishDate: (updatedData as any).published_at || article.publishDate
             } as NewsArticle) : article,
           ),
         )
+        setNewsFile(null)
         setEditingNews(null)
         setNewNews({
           title: "",
@@ -1611,9 +1658,8 @@ export function AdminDashboard({
                         <input id="add-image-upload" type="file" accept="image/*" className="hidden" onChange={(e) => {
                           const file = e.target.files?.[0]
                           if (file) {
-                            handleImageOptimize(file, (optimizedUrl) => {
-                              setNewActivity({ ...newActivity, image: optimizedUrl })
-                            })
+                            setActivityFile(file);
+                            setNewActivity({ ...newActivity, image: URL.createObjectURL(file) })
                           }
                         }} />
                         {newActivity.image && (
@@ -1813,9 +1859,8 @@ export function AdminDashboard({
                       <input id="edit-image-upload" type="file" accept="image/*" className="hidden" onChange={(e) => {
                         const file = e.target.files?.[0]
                         if (file) {
-                          handleImageOptimize(file, (optimizedUrl) => {
-                            setNewActivity({ ...newActivity, image: optimizedUrl })
-                          })
+                          setActivityFile(file);
+                          setNewActivity({ ...newActivity, image: URL.createObjectURL(file) })
                         }
                       }} />
                       {newActivity.image && (
@@ -2986,9 +3031,8 @@ export function AdminDashboard({
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                handleImageOptimize(file, (optimizedUrl) => {
-                                  setNewNews({ ...newNews, image: optimizedUrl });
-                                });
+                                setNewsFile(file);
+                                setNewNews({ ...newNews, image: URL.createObjectURL(file) });
                               }
                             }}
                           />
@@ -3289,9 +3333,8 @@ export function AdminDashboard({
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            handleImageOptimize(file, (optimizedUrl) => {
-                              setNewNews({ ...newNews, image: optimizedUrl });
-                            });
+                            setNewsFile(file);
+                            setNewNews({ ...newNews, image: URL.createObjectURL(file) });
                           }
                         }}
                       />

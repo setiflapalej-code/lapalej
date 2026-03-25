@@ -146,7 +146,7 @@ export async function loadMoreActivitiesAction(offset: number) {
         ...a,
         type: a.categories?.[0] || "عام",
         capacity: a.max_participants || 0,
-        image: (a.images && a.images.length > 0) ? a.images[0] : "/placeholder.svg",
+        image: a.images ? a.images : "/placeholder.svg",
         activityTemplate: a.template || "announcement",
         registered: 0,
         createdAt: a.created_at,

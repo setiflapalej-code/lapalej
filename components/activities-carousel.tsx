@@ -15,7 +15,12 @@ interface Props {
 
 export function ActivitiesCarousel({ initialActivities = [] }: Props) {
     const router = useRouter()
-    const [activities] = useState<Activity[]>(initialActivities)
+    const [activities] = useState<Activity[]>(() => 
+        initialActivities.map(a => ({
+            ...a,
+            images: typeof a.images === 'string' ? (a.images ? [a.images] : []) : (Array.isArray(a.images) ? a.images : [])
+        }))
+    )
     const [isMounted, setIsMounted] = useState(false)
 
     // Embla setup with right-to-left support (if the rest of the site is RTL, we should match it)

@@ -64,7 +64,7 @@ export const CreateActivitySchema = z.object({
     max_associations: z.number().int().positive().optional(),
     max_participants: z.number().int().positive().optional(),
     categories: z.array(z.string()).default([]),
-    images: z.array(z.string().url()).default([]),
+    images: z.string().optional(),
     videos: z.array(z.string().url()).default([]),
     achievements: z.array(z.string()).default([]),
     highlights: z.array(z.string()).default([]),
