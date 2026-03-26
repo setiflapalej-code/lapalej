@@ -8,6 +8,7 @@ import { createActivity, updateActivity, deleteActivity } from "@/services/Activ
 import { createNews, updateNews, deleteNews } from "@/services/NewsService"
 import { approveAssociation, deleteAssociation, rejectAssociation, undoRejectAssociation } from "@/services/AdminService"
 import type { CreateActivityDTO, UpdateActivityDTO, CreateNewsDTO, UpdateNewsDTO } from "@/types/dto"
+import { handleSupabaseError } from "@/lib/utils/error-handler"
 
 // ============================================================
 // Auth Actions
@@ -34,59 +35,119 @@ export async function revokeAllSessionsAction() {
 // Activity Actions
 // ============================================================
 export async function addActivityAction(data: CreateActivityDTO) {
-    await verifyAdminAction()
-    return createActivity(data)
+    try {
+        await verifyAdminAction()
+        const result = await createActivity(data)
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[addActivityAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function editActivityAction(id: string, data: UpdateActivityDTO) {
-    await verifyAdminAction()
-    return updateActivity(id, data)
+    try {
+        await verifyAdminAction()
+        const result = await updateActivity(id, data)
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[editActivityAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function removeActivityAction(id: string) {
-    await verifyAdminAction()
-    return deleteActivity(id)
+    try {
+        await verifyAdminAction()
+        await deleteActivity(id)
+        return { success: true }
+    } catch (err) {
+        console.error("[removeActivityAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 // ============================================================
 // News Actions
 // ============================================================
 export async function addNewsAction(data: CreateNewsDTO) {
-    await verifyAdminAction()
-    return createNews(data)
+    try {
+        await verifyAdminAction()
+        const result = await createNews(data)
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[addNewsAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function editNewsAction(id: string, data: UpdateNewsDTO) {
-    await verifyAdminAction()
-    return updateNews(id, data)
+    try {
+        await verifyAdminAction()
+        const result = await updateNews(id, data)
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[editNewsAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function removeNewsAction(id: string) {
-    await verifyAdminAction()
-    return deleteNews(id)
+    try {
+        await verifyAdminAction()
+        await deleteNews(id)
+        return { success: true }
+    } catch (err) {
+        console.error("[removeNewsAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 // ============================================================
 // Association Actions
 // ============================================================
 export async function approveAssociationAction(id: string) {
-    await verifyAdminAction()
-    return approveAssociation(id)
+    try {
+        await verifyAdminAction()
+        const result = await approveAssociation(id)
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[approveAssociationAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function rejectAssociationAction(id: string, reason?: string) {
-    await verifyAdminAction()
-    return rejectAssociation(id, reason)
+    try {
+        await verifyAdminAction()
+        const result = await rejectAssociation(id, reason)
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[rejectAssociationAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function undoRejectAssociationAction(id: string) {
-    await verifyAdminAction()
-    return undoRejectAssociation(id)
+    try {
+        await verifyAdminAction()
+        const result = await undoRejectAssociation(id)
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[undoRejectAssociationAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function deleteAssociationAction(id: string) {
-    await verifyAdminAction()
-    return deleteAssociation(id)
+    try {
+        await verifyAdminAction()
+        await deleteAssociation(id)
+        return { success: true }
+    } catch (err) {
+        console.error("[deleteAssociationAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 // ============================================================
@@ -98,8 +159,14 @@ export async function updateRegistrationStatusAction(
     status: "pending" | "approved" | "rejected",
     rejection_reason?: string
 ) {
-    await verifyAdminAction()
-    return updateRegistrationStatus({ id, status, rejection_reason })
+    try {
+        await verifyAdminAction()
+        const result = await updateRegistrationStatus({ id, status, rejection_reason })
+        return { success: true, data: result }
+    } catch (err) {
+        console.error("[updateRegistrationStatusAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 // ============================================================
@@ -108,23 +175,47 @@ export async function updateRegistrationStatusAction(
 import { ContactService } from "@/services/ContactService"
 
 export async function getMessagesAction() {
-    await verifyAdminAction()
-    return ContactService.getAllContactMessages()
+    try {
+        await verifyAdminAction()
+        const data = await ContactService.getAllContactMessages()
+        return { success: true, data }
+    } catch (err) {
+        console.error("[getMessagesAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function replyMessageAction(id: string, replyText: string) {
-    await verifyAdminAction()
-    return ContactService.replyToContactMessage(id, replyText)
+    try {
+        await verifyAdminAction()
+        const data = await ContactService.replyToContactMessage(id, replyText)
+        return { success: true, data }
+    } catch (err) {
+        console.error("[replyMessageAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function markMessageReadAction(id: string) {
-    await verifyAdminAction()
-    return ContactService.markMessageRead(id)
+    try {
+        await verifyAdminAction()
+        const data = await ContactService.markMessageRead(id)
+        return { success: true, data }
+    } catch (err) {
+        console.error("[markMessageReadAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 export async function deleteMessageAction(id: string) {
-    await verifyAdminAction()
-    return ContactService.deleteContactMessage(id)
+    try {
+        await verifyAdminAction()
+        await ContactService.deleteContactMessage(id)
+        return { success: true }
+    } catch (err) {
+        console.error("[deleteMessageAction]", err)
+        return { success: false, message: handleSupabaseError(err) }
+    }
 }
 
 // ============================================================
@@ -223,3 +314,55 @@ export async function loadMoreMessagesAction(offset: number) {
     }))
 }
 
+
+// ============================================================
+// Dashboard Stats (real total counts — no row data fetched)
+// ============================================================
+export async function getAdminDashboardStats() {
+    await verifyAdminAction()
+    const db = getServiceRoleClient()
+
+    const [
+        { count: totalActivities },
+        { count: activeActivities },
+        { count: totalAssociations },
+        { count: approvedAssociations },
+        { count: pendingAssociations },
+        { count: totalNews },
+        { count: publishedNews },
+        { count: draftNews },
+        { count: totalMessages },
+        { count: unreadMessages },
+        { count: totalRegistrations },
+        { count: pendingRegistrations },
+    ] = await Promise.all([
+        db.from("activities").select("*", { count: "exact", head: true }),
+        db.from("activities").select("*", { count: "exact", head: true }).eq("status", "active"),
+        db.from("associations").select("*", { count: "exact", head: true }),
+        db.from("associations").select("*", { count: "exact", head: true }).eq("status", "approved"),
+        db.from("associations").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        db.from("news").select("*", { count: "exact", head: true }),
+        db.from("news").select("*", { count: "exact", head: true }).not("published_at", "is", null),
+        db.from("news").select("*", { count: "exact", head: true }).is("published_at", null),
+        db.from("contact_messages").select("*", { count: "exact", head: true }),
+        db.from("contact_messages").select("*", { count: "exact", head: true }).eq("status", "unread"),
+        db.from("activity_registrations").select("*", { count: "exact", head: true }),
+        db.from("activity_registrations").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    ])
+
+    return {
+        activities: { total: totalActivities ?? 0, active: activeActivities ?? 0 },
+        associations: {
+            total: totalAssociations ?? 0,
+            approved: approvedAssociations ?? 0,
+            pending: pendingAssociations ?? 0,
+        },
+        news: {
+            total: totalNews ?? 0,
+            published: publishedNews ?? 0,
+            draft: draftNews ?? 0,
+        },
+        messages: { total: totalMessages ?? 0, unread: unreadMessages ?? 0 },
+        registrations: { total: totalRegistrations ?? 0, pending: pendingRegistrations ?? 0 },
+    }
+}

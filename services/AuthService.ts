@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { getServiceRoleClient } from "@/lib/supabase/admin"
 import { LoginAssociationSchema, RegisterAssociationSchema } from "@/types/dto"
 import type { AuthResult, AssociationSession } from "@/types/auth"
+import { handleSupabaseError } from "@/lib/utils/error-handler"
 
 // ============================================================
 // Association Register (via Supabase Auth)
@@ -33,10 +34,14 @@ export async function associationRegister(
         })
 
         if (authError) {
-            if (authError.code === "user_already_exists") {
-                return { success: false, error: "هذا البريد مسجل مسبقاً", code: "EMAIL_EXISTS" }
+            if (authError.code === "user_already_exists" || authError.status === 422) {
+                return {
+                    success: false,
+                    error: "عذراً، هذا البريد الإلكتروني مسجل مسبقاً في النظام. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول بالحساب الموجود.",
+                    code: "EMAIL_EXISTS"
+                }
             }
-            return { success: false, error: authError.message, code: "AUTH_ERROR" }
+            return { success: false, error: handleSupabaseError(authError), code: "AUTH_ERROR" }
         }
 
         if (!authData.user) {

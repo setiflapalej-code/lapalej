@@ -3,6 +3,7 @@
 import { getServiceRoleClient } from "@/lib/supabase/admin"
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { CreateRegistrationSchema, AddParticipantSchema, UpdateRegistrationStatusSchema, RegisterWithParticipantsSchema } from "@/types/dto"
+import { handleSupabaseError } from "@/lib/utils/error-handler"
 
 // ============================================================
 // Verify Association Session
@@ -89,7 +90,7 @@ export async function registerForActivity(
 
     if (error) {
         if (error.code === "23505") throw new Error("لقد قمت بالتسجيل في هذا النشاط مسبقاً")
-        throw new Error("[RegistrationService] Registration failed: " + error.message)
+        throw new Error(handleSupabaseError(error))
     }
 
     return data
@@ -110,7 +111,7 @@ export async function getRegistrationsForActivity(activityId: string) {
         .eq("activity_id", activityId)
         .order("created_at", { ascending: false })
 
-    if (error) throw new Error("[RegistrationService] Failed to fetch registrations: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data ?? []
 }
 
@@ -129,7 +130,7 @@ export async function getAllRegistrations() {
     `)
         .order("created_at", { ascending: false })
 
-    if (error) throw new Error("[RegistrationService] Failed to fetch all registrations: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data ?? []
 }
 
@@ -148,7 +149,7 @@ export async function getMyRegistrations(associationId: string) {
         .eq("association_id", associationId)
         .order("created_at", { ascending: false })
 
-    if (error) throw new Error("[RegistrationService] Failed to fetch registrations: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data ?? []
 }
 
@@ -167,7 +168,7 @@ export async function getRecentRegistrations(associationId: string) {
         .order("created_at", { ascending: false })
         .limit(5)
 
-    if (error) throw new Error("[RegistrationService] Failed to fetch recent registrations: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data ?? []
 }
 
@@ -192,7 +193,7 @@ export async function updateRegistrationStatus(
         .select("id, status, rejection_reason, reviewed_at")
         .single()
 
-    if (error) throw new Error("[RegistrationService] Status update failed: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data
 }
 
@@ -235,7 +236,7 @@ export async function addParticipants(
         .insert(participants)
         .select("id, name, birthdate, category")
 
-    if (error) throw new Error("[RegistrationService] Failed to add participants: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data
 }
 
@@ -305,7 +306,7 @@ export async function registerWithParticipants(
 
     if (regError) {
         if (regError.code === "23505") throw new Error("لقد قمت بالتسجيل في هذا النشاط مسبقاً")
-        throw new Error("[RegistrationService] Registration failed: " + regError.message)
+        throw new Error(handleSupabaseError(regError))
     }
 
     // 3. Insert Participants if provided
@@ -331,7 +332,7 @@ export async function registerWithParticipants(
         if (partError) {
             // Manual rollback
             await supabase.from("activity_registrations").delete().eq("id", regData.id)
-            throw new Error("[RegistrationService] Failed to add participants: " + partError.message)
+            throw new Error(handleSupabaseError(partError))
         }
     }
 

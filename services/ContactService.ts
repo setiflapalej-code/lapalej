@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
+import { handleSupabaseError } from "@/lib/utils/error-handler"
 
 // Placeholder email function
 export async function sendReplyEmail(to: string, subject: string, content: string) {
@@ -70,7 +71,7 @@ export const ContactService = {
 
         if (error) {
             console.error("Error inserting contact message:", error)
-            throw new Error(error.message)
+            throw new Error(handleSupabaseError(error))
         }
 
         return true
@@ -86,7 +87,7 @@ export const ContactService = {
 
         if (error) {
             console.error("Error fetching contact messages:", error)
-            throw new Error(error.message)
+            throw new Error(handleSupabaseError(error))
         }
 
         return data
@@ -102,7 +103,7 @@ export const ContactService = {
             .eq("id", id)
             .single()
 
-        if (fetchError) throw fetchError
+        if (fetchError) throw new Error(handleSupabaseError(fetchError))
 
         // Send the email if the user provided one
         if (message.email) {
@@ -125,7 +126,7 @@ export const ContactService = {
             .select()
             .single()
 
-        if (updateError) throw updateError
+        if (updateError) throw new Error(handleSupabaseError(updateError))
 
         return data
     },
@@ -139,7 +140,7 @@ export const ContactService = {
             .select()
             .single()
 
-        if (error) throw error
+        if (error) throw new Error(handleSupabaseError(error))
         return data
     },
 
@@ -150,7 +151,7 @@ export const ContactService = {
             .delete()
             .eq("id", id)
 
-        if (error) throw error
+        if (error) throw new Error(handleSupabaseError(error))
         return true
     }
 }

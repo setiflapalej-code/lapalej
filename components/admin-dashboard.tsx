@@ -373,6 +373,23 @@ export function AdminDashboard({
   const [hasMoreMessages, setHasMoreMessages] = useState(initialMessages.length === pageSize)
   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false)
 
+  // --- Global stats (real DB counts, not paginated slice lengths) ---
+  const [dashboardStats, setDashboardStats] = useState<{
+    activities: { total: number; active: number }
+    associations: { total: number; approved: number; pending: number }
+    news: { total: number; published: number; draft: number }
+    messages: { total: number; unread: number }
+    registrations: { total: number; pending: number }
+  } | null>(null)
+
+  useEffect(() => {
+    import("@/app/admin/actions").then(({ getAdminDashboardStats }) => {
+      getAdminDashboardStats()
+        .then((s) => { if (s) setDashboardStats(s) })
+        .catch(() => { /* silently ignore — counts fall back to list lengths */ })
+    })
+  }, [])
+
   const handleLoadMoreActivities = async () => {
     setIsLoadingMoreActivities(true)
     try {
@@ -580,7 +597,7 @@ export function AdminDashboard({
           imageUrl = publicUrlData.publicUrl;
         }
 
-        const createdData = await addActivityAction({
+        const result = await addActivityAction({
           title: newActivity.title,
           description: newActivity.description,
           date: newActivity.date || new Date().toISOString().split("T")[0],
@@ -593,10 +610,15 @@ export function AdminDashboard({
           categories: [newActivity.type || "عام", ...(newActivity.categories || [])],
         } as any)
 
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
+
         // Ensure UI types match DB types
         const activity: Activity = {
-          ...(createdData as any),
-          id: (createdData as any).id,
+          ...(result.data as any),
+          id: (result.data as any).id,
           type: newActivity.type || "عام",
           capacity: newActivity.capacity || 0,
           image: imageUrl || "/placeholder.svg",
@@ -641,7 +663,7 @@ export function AdminDashboard({
           imageUrl = publicUrlData.publicUrl;
         }
 
-        const updatedData = await editActivityAction(editingActivity.id, {
+        const result = await editActivityAction(editingActivity.id, {
           title: newActivity.title,
           description: newActivity.description,
           date: newActivity.date,
@@ -653,6 +675,11 @@ export function AdminDashboard({
           template: newActivity.activityTemplate,
           categories: newActivity.type ? [newActivity.type, ...(newActivity.categories || [])] : newActivity.categories,
         } as any)
+
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
 
         setActivities(
           activities.map((activity) =>
@@ -674,7 +701,11 @@ export function AdminDashboard({
     if (activityDeleteConfirmId) {
       setIsActivityActionLoading(true)
       try {
-        await removeActivityAction(activityDeleteConfirmId)
+        const result = await removeActivityAction(activityDeleteConfirmId)
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
         setActivities(activities.filter((a) => a.id !== activityDeleteConfirmId))
         setActivityRegistrations(activityRegistrations.filter((r) => r.activityId !== activityDeleteConfirmId))
         setActivityDeleteConfirmId(null)
@@ -692,7 +723,11 @@ export function AdminDashboard({
     setIsActivityActionLoading(true)
     try {
       const { updateRegistrationStatusAction } = await import("@/app/admin/actions")
-      await updateRegistrationStatusAction(registrationId, "approved")
+      const result = await updateRegistrationStatusAction(registrationId, "approved")
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setActivityRegistrations((prev) =>
         prev.map((r) => (r.id === registrationId ? { ...r, status: "approved" as const } : r)),
       )
@@ -708,7 +743,11 @@ export function AdminDashboard({
     setIsActivityActionLoading(true)
     try {
       const { updateRegistrationStatusAction } = await import("@/app/admin/actions")
-      await updateRegistrationStatusAction(registrationId, "rejected")
+      const result = await updateRegistrationStatusAction(registrationId, "rejected")
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setActivityRegistrations((prev) => prev.filter((r) => r.id !== registrationId))
       toast({ title: "تم الرفض", description: "تم رفض طلب التسجيل" })
     } catch {
@@ -742,7 +781,11 @@ export function AdminDashboard({
   const handleMarkAsRead = async (messageId: string) => {
     try {
       const { markMessageReadAction } = await import('@/app/admin/actions')
-      await markMessageReadAction(messageId)
+      const result = await markMessageReadAction(messageId)
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setMessages(messages.map((msg) => (msg.id === messageId ? { ...msg, status: "read" } : msg)))
     } catch (error) {
       toast({ title: "خطأ", description: "تعذر تحديث حالة الرسالة", variant: "destructive" })
@@ -758,7 +801,11 @@ export function AdminDashboard({
       setIsMessageActionLoading(true)
       try {
         const { deleteMessageAction } = await import('@/app/admin/actions')
-        await deleteMessageAction(messageDeleteConfirmId)
+        const result = await deleteMessageAction(messageDeleteConfirmId)
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
         setMessages(messages.filter((msg) => msg.id !== messageDeleteConfirmId))
         setMessageDeleteConfirmId(null)
         toast({ title: "تم الحذف", description: "تم حذف الرسالة بنجاح" })
@@ -775,7 +822,11 @@ export function AdminDashboard({
       setIsMessageActionLoading(true)
       try {
         const { replyMessageAction } = await import('@/app/admin/actions')
-        await replyMessageAction(messageId, replyText)
+        const result = await replyMessageAction(messageId, replyText)
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
         setMessages(messages.map((msg) => (msg.id === messageId ? { ...msg, status: "replied" } : msg)))
         setReplyText("")
         setSelectedMessage(null)
@@ -794,7 +845,11 @@ export function AdminDashboard({
   const handleApprovePartnership = async (partnershipId: string) => {
     setIsAssociationActionLoading(true)
     try {
-      await approveAssociationAction(partnershipId)
+      const result = await approveAssociationAction(partnershipId)
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setPartnerships((prev) =>
         prev.map((p) =>
           p.id === partnershipId
@@ -822,7 +877,11 @@ export function AdminDashboard({
   const handleRejectPartnership = async (partnershipId: string) => {
     setIsAssociationActionLoading(true)
     try {
-      await rejectAssociationAction(partnershipId, reviewNotes)
+      const result = await rejectAssociationAction(partnershipId, reviewNotes)
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setPartnerships((prev) =>
         prev.map((p) =>
           p.id === partnershipId
@@ -850,7 +909,11 @@ export function AdminDashboard({
   const handleUndoReject = async (partnershipId: string) => {
     setIsAssociationActionLoading(true)
     try {
-      await undoRejectAssociationAction(partnershipId)
+      const result = await undoRejectAssociationAction(partnershipId)
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setPartnerships((prev) =>
         prev.map((p) =>
           p.id === partnershipId
@@ -869,7 +932,11 @@ export function AdminDashboard({
   const handleDeletePartnership = async (partnershipId: string) => {
     setIsAssociationActionLoading(true)
     try {
-      await deleteAssociationAction(partnershipId)
+      const result = await deleteAssociationAction(partnershipId)
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setPartnerships((prev) => prev.filter((p) => p.id !== partnershipId))
       setDeleteConfirmId(null)
       setSelectedPartnership(null)
@@ -903,7 +970,7 @@ export function AdminDashboard({
         }
 
         const isPublished = newNews.status === "published"
-        const createdData = await addNewsAction({
+        const result = await addNewsAction({
           title: newNews.title,
           content: newNews.content,
           excerpt: newNews.excerpt || newNews.content.substring(0, 150) + "...",
@@ -914,9 +981,14 @@ export function AdminDashboard({
           featured: newNews.featured || false,
         } as any)
 
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
+
         const article: NewsArticle = {
-          ...(createdData as any),
-          id: (createdData as any).id,
+          ...(result.data as any),
+          id: (result.data as any).id,
           status: isPublished ? "published" : "draft",
           tags: [],
           views: 0
@@ -971,7 +1043,7 @@ export function AdminDashboard({
         }
 
         const isPublished = newNews.status === "published"
-        const updatedData = await editNewsAction(editingNews.id, {
+        const result = await editNewsAction(editingNews.id, {
           title: newNews.title,
           content: newNews.content,
           excerpt: newNews.excerpt,
@@ -982,13 +1054,18 @@ export function AdminDashboard({
           featured: newNews.featured,
         } as any)
 
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
+
         setNewsArticles(
           newsArticles.map((article) =>
             article.id === editingNews.id ? ({
               ...article,
               ...newNews,
               image: imageUrl || "/placeholder.svg",
-              publishDate: (updatedData as any).published_at || article.publishDate
+              publishDate: (result.data as any).published_at || article.publishDate
             } as NewsArticle) : article,
           ),
         )
@@ -1022,7 +1099,11 @@ export function AdminDashboard({
     if (newsDeleteConfirmId) {
       setIsNewsActionLoading(true)
       try {
-        await removeNewsAction(newsDeleteConfirmId)
+        const result = await removeNewsAction(newsDeleteConfirmId)
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
         setNewsArticles(newsArticles.filter((article) => article.id !== newsDeleteConfirmId))
         setNewsDeleteConfirmId(null)
         toast({ title: "تم الحذف", description: "تم حذف الخبر بنجاح" })
@@ -1036,7 +1117,11 @@ export function AdminDashboard({
 
   const handlePublishNews = async (id: string) => {
     try {
-      await editNewsAction(id, { published_at: new Date().toISOString() } as any)
+      const result = await editNewsAction(id, { published_at: new Date().toISOString() } as any)
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setNewsArticles(
         newsArticles.map((article) =>
           article.id === id ? { ...article, status: "published", publishDate: new Date().toISOString() } : article,
@@ -1048,7 +1133,11 @@ export function AdminDashboard({
 
   const handleArchiveNews = async (id: string) => {
     try {
-      await editNewsAction(id, { published_at: undefined } as any)
+      const result = await editNewsAction(id, { published_at: undefined } as any)
+      if (!result.success) {
+        toast({ title: "خطأ", description: result.message, variant: "destructive" })
+        return
+      }
       setNewsArticles(newsArticles.map((article) => (article.id === id ? { ...article, status: "archived" } : article)))
       toast({ title: "تم", description: "تم أرشفة الخبر بنجاح" })
     } catch { toast({ title: "خطأ", description: "فشل أرشفة الخبر", variant: "destructive" }) }
@@ -1058,7 +1147,11 @@ export function AdminDashboard({
     const article = newsArticles.find(a => a.id === id)
     if (article) {
       try {
-        await editNewsAction(id, { featured: !article.featured } as any)
+        const result = await editNewsAction(id, { featured: !article.featured } as any)
+        if (!result.success) {
+          toast({ title: "خطأ", description: result.message, variant: "destructive" })
+          return
+        }
         setNewsArticles(
           newsArticles.map((a) => (a.id === id ? { ...a, featured: !a.featured } : a)),
         )
@@ -1213,25 +1306,25 @@ export function AdminDashboard({
   const stats = [
     {
       title: "إجمالي الأعضاء",
-      value: partnerships.filter((p) => p.status === "approved").length.toString(),
+      value: (dashboardStats?.associations.approved ?? partnerships.filter((p) => p.status === "approved").length).toString(),
       icon: Users,
       color: "text-blue-600"
     },
     {
       title: "الأنشطة النشطة",
-      value: activities.filter((a) => a.status === "active").length.toString(),
+      value: (dashboardStats?.activities.active ?? activities.filter((a) => a.status === "active").length).toString(),
       icon: Calendar,
       color: "text-green-600",
     },
     {
       title: "الرسائل الجديدة",
-      value: messages.filter((m) => m.status === "unread").length.toString(),
+      value: (dashboardStats?.messages.unread ?? messages.filter((m) => m.status === "unread").length).toString(),
       icon: MessageSquare,
       color: "text-amber-600",
     },
     {
       title: "طلبات الشراكة",
-      value: partnerships.filter((p) => p.status === "pending").length.toString(),
+      value: (dashboardStats?.associations.pending ?? partnerships.filter((p) => p.status === "pending").length).toString(),
       icon: UserCheck,
       color: "text-purple-600",
     },
@@ -2140,7 +2233,7 @@ export function AdminDashboard({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي الرسائل</p>
-                      <p className="text-2xl font-bold text-gray-900">{messages.length}</p>
+                      <p className="text-2xl font-bold text-gray-900">{dashboardStats?.messages.total ?? messages.length}</p>
                     </div>
                     <Mail className="h-8 w-8 text-blue-600" />
                   </div>
@@ -2152,7 +2245,7 @@ export function AdminDashboard({
                     <div>
                       <p className="text-sm font-medium text-gray-600">غير مقروءة</p>
                       <p className="text-2xl font-bold text-red-600">
-                        {messages.filter((m) => m.status === "unread").length}
+                        {dashboardStats?.messages.unread ?? messages.filter((m) => m.status === "unread").length}
                       </p>
                     </div>
                     <MessageSquare className="h-8 w-8 text-red-600" />
@@ -2507,7 +2600,7 @@ export function AdminDashboard({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
-                      <p className="text-2xl font-bold text-gray-900">{partnerships.filter(p => p.status !== "rejected").length}</p>
+                      <p className="text-2xl font-bold text-gray-900">{dashboardStats?.associations.total ?? partnerships.filter(p => p.status !== "rejected").length}</p>
                     </div>
                     <FileText className="h-8 w-8 text-blue-600" />
                   </div>
@@ -2519,7 +2612,7 @@ export function AdminDashboard({
                     <div>
                       <p className="text-sm font-medium text-gray-600">قيد المراجعة</p>
                       <p className="text-2xl font-bold text-yellow-600">
-                        {partnerships.filter((p) => p.status === "pending").length}
+                        {dashboardStats?.associations.pending ?? partnerships.filter((p) => p.status === "pending").length}
                       </p>
                     </div>
                     <Clock className="h-8 w-8 text-yellow-600" />
@@ -2532,7 +2625,7 @@ export function AdminDashboard({
                     <div>
                       <p className="text-sm font-medium text-gray-600">شراكات معتمدة</p>
                       <p className="text-2xl font-bold text-green-600">
-                        {partnerships.filter((p) => p.status === "approved").length}
+                        {dashboardStats?.associations.approved ?? partnerships.filter((p) => p.status === "approved").length}
                       </p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-green-600" />
@@ -3086,7 +3179,7 @@ export function AdminDashboard({
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي المقالات</p>
-                      <p className="text-2xl font-bold text-gray-900">{newsArticles.length}</p>
+                      <p className="text-2xl font-bold text-gray-900">{dashboardStats?.news.total ?? newsArticles.length}</p>
                     </div>
                     <Newspaper className="h-8 w-8 text-blue-600" />
                   </div>
@@ -3098,7 +3191,7 @@ export function AdminDashboard({
                     <div>
                       <p className="text-sm font-medium text-gray-600">منشورة</p>
                       <p className="text-2xl font-bold text-green-600">
-                        {newsArticles.filter((article) => article.status === "published").length}
+                        {dashboardStats?.news.published ?? newsArticles.filter((article) => article.status === "published").length}
                       </p>
                     </div>
                     <Globe className="h-8 w-8 text-green-600" />
@@ -3111,7 +3204,7 @@ export function AdminDashboard({
                     <div>
                       <p className="text-sm font-medium text-gray-600">مسودات</p>
                       <p className="text-2xl font-bold text-yellow-600">
-                        {newsArticles.filter((article) => article.status === "draft").length}
+                        {dashboardStats?.news.draft ?? newsArticles.filter((article) => article.status === "draft").length}
                       </p>
                     </div>
                     <Edit className="h-8 w-8 text-yellow-600" />

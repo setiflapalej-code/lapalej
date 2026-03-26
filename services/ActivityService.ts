@@ -4,6 +4,7 @@ import { getServiceRoleClient } from "@/lib/supabase/admin"
 import type { CreateActivityDTO, UpdateActivityDTO } from "@/types/dto"
 import { CreateActivitySchema, UpdateActivitySchema } from "@/types/dto"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import { handleSupabaseError } from "@/lib/utils/error-handler"
 
 // ============================================================
 // Get All Activities (public — browser client, no server hop)
@@ -15,7 +16,7 @@ export async function getActivities() {
         .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya, created_at")
         .order("created_at", { ascending: false })
 
-    if (error) throw new Error("[ActivityService] Failed to fetch activities: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data ?? []
 }
 
@@ -30,7 +31,7 @@ export async function getActivity(id: string) {
         .eq("id", id)
         .single()
 
-    if (error) throw new Error("[ActivityService] Activity not found: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data
 }
 
@@ -48,7 +49,7 @@ export async function createActivity(input: CreateActivityDTO) {
         .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
         .single()
 
-    if (error) throw new Error("[ActivityService] Failed to create activity: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data
 }
 
@@ -67,7 +68,7 @@ export async function updateActivity(id: string, input: UpdateActivityDTO) {
         .select("id, title, date, location, description, images, videos, duration, status, categories, template, allow_association_registration, allow_participant_registration, max_participants, wilaya")
         .single()
 
-    if (error) throw new Error("[ActivityService] Failed to update activity: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
     return data
 }
 
@@ -77,5 +78,5 @@ export async function updateActivity(id: string, input: UpdateActivityDTO) {
 export async function deleteActivity(id: string) {
     const db = getServiceRoleClient()
     const { error } = await db.from("activities").delete().eq("id", id)
-    if (error) throw new Error("[ActivityService] Failed to delete activity: " + error.message)
+    if (error) throw new Error(handleSupabaseError(error))
 }
