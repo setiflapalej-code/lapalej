@@ -2344,6 +2344,18 @@ export function AdminDashboard({
                               variant="outline"
                               onClick={(e) => {
                                 e.stopPropagation()
+                                setSelectedMessage(message)
+                              }}
+                              className="text-amber-600 hover:text-amber-700 gap-1"
+                            >
+                              <Reply className="h-4 w-4" />
+                              رد
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation()
                                 handleDeleteMessage(message.id)
                               }}
                               className="text-red-600 hover:text-red-700"

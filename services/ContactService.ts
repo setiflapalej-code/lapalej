@@ -1,14 +1,52 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server"
 import { handleSupabaseError } from "@/lib/utils/error-handler"
+import { Resend } from "resend"
 
-// Placeholder email function
-export async function sendReplyEmail(to: string, subject: string, content: string) {
-    // TODO: connect the hosting's SMTP server later
-    console.log("==============================")
-    console.log(`[EMAIL SENT] To: ${to}`)
-    console.log(`[EMAIL SENT] Subject: ${subject}`)
-    console.log(`[EMAIL SENT] Content: ${content}`)
-    console.log("==============================")
+// Professional Email Reply
+export async function sendProfessionalReply(to: string, subject: string, body: string) {
+    if (!process.env.RESEND_API_KEY) {
+        throw new Error("لم يتم إعداد مفتاح Resend في البيئة (RESEND_API_KEY).")
+    }
+    const resend = new Resend(process.env.RESEND_API_KEY)
+
+    const { data, error } = await resend.emails.send({
+        from: "رابطة الهواء الطلق لولاية سطيف  <info@lapalejsetif.com>",
+        to: [to],
+        subject: subject,
+        html: `
+            <div dir="rtl" style="margin: 0; padding: 40px 20px; background-color: #f3f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                    
+                    <!-- Header -->
+                    <div style="background: linear-gradient(135deg, #064e3b 0%, #059669 100%); padding: 35px 20px; text-align: center;">
+                        <h2 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.15);">الرابطة الولائية للهواء الطلق ومبادلات الشباب لولاية سطيف</h2>
+                        <p style="margin: 10px 0 0 0; color: #d1fae5; font-size: 15px; opacity: 0.9;">الإدارة العامة</p>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div style="padding: 40px 35px; color: #374151; font-size: 16px; line-height: 1.8;">
+                        <div style="white-space: pre-wrap;">${body}</div>
+                    </div>
+                    
+                    <!-- Footer -->
+                    <div style="background-color: #f9fafb; padding: 25px 35px; text-align: center; border-top: 1px solid #f3f4f6;">
+                        <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px; font-weight: 600;">
+                            هذا الرد صادر عن الإدارة العامة للرابطة عبر المنصة الإلكترونية
+                        </p>
+                        <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                            © ${new Date().getFullYear()} رابطة الهواء الطلق ومبادلات الشباب لولاية سطيف. جميع الحقوق محفوظة.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `
+    })
+
+    if (error) {
+        console.error("Error sending email:", error)
+        throw new Error(error.message)
+    }
+
     return true
 }
 
@@ -26,14 +64,6 @@ export const ContactService = {
         // Rate Limiting: No more than 5 messages from the same email in the last hour
         if (data.email) {
             const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-
-            // Need to use service_role client or secure context if RLS hides other people's messages from 'anon'
-            // Wait, 'anon' cannot read messages due to RLS!
-            // To perform rate limiting, we need to count. Since RLS blocks SELECT for anon, we must bypass RLS just for this check,
-            // OR we can create a secure RPC function. 
-            // The easiest way for now without a new migration is to use the service role client for this specific check.
-            // Alternatively, we use `createSupabaseServerClient` but since RLS restricts SELECT to authenticated admins, it returns 0 for anon.
-            // So we MUST use the service role client to check the count.
 
             const { createClient } = await import("@supabase/supabase-js")
             const serviceClient = createClient(
@@ -107,7 +137,7 @@ export const ContactService = {
 
         // Send the email if the user provided one
         if (message.email) {
-            await sendReplyEmail(
+            await sendProfessionalReply(
                 message.email,
                 `رد على رسالتك: ${message.subject}`,
                 `مرحباً ${message.name}،\n\n${replyText}\n\nمع تحيات إدارة الرابطة الولائية.`
