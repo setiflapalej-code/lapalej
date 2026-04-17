@@ -73,7 +73,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
   const isFormValid = useMemo(() => {
     const emailOk = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email.trim())
     const phoneOk = /^\d{10}$/.test(formData.associationPhone.trim())
-    const passOk = formData.password.length >= 7 && /^[a-zA-Z0-9]+$/.test(formData.password)
+    const passOk = formData.password.length >= 7
     const passMatchOk = formData.password === formData.confirmPassword
     return (
       formData.associationName.trim() !== "" &&
@@ -144,8 +144,6 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
       newErrors.password = "كلمة المرور مطلوبة"
     } else if (formData.password.length < 7) {
       newErrors.password = "كلمة المرور يجب أن تكون 7 أحرف على الأقل"
-    } else if (!/^[a-zA-Z0-9]+$/.test(formData.password)) {
-      newErrors.password = "كلمة المرور يجب أن تحتوي على أحرف وأرقام فقط"
     }
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "كلمتا المرور غير متطابقتين"
@@ -572,7 +570,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
                             <Input
                               id="password" name="password" type={showRegPassword ? "text" : "password"}
                               value={formData.password} onChange={handleInputChange}
-                              placeholder="7 أحرف على الأقل (أرقام وحروف)" className={`text-right pr-10 ${regErrors.password ? "border-red-300" : ""}`} dir="ltr"
+                              placeholder="7 أحرف على الأقل (أرقام، حروف، رموز)" className={`text-right pr-10 ${regErrors.password ? "border-red-300" : ""}`} dir="ltr"
                             />
                             <button type="button" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowRegPassword(!showRegPassword)}>
                               {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

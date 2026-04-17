@@ -15,8 +15,7 @@ export const RegisterAssociationSchema = z.object({
     email: z.string().email("البريد الإلكتروني غير صالح"),
     password: z
         .string()
-        .min(7, "كلمة المرور يجب أن تكون 7 أحرف على الأقل")
-        .regex(/^[a-zA-Z0-9]+$/, "كلمة المرور يجب أن تحتوي على أحرف وأرقام فقط"),
+        .min(7, "كلمة المرور يجب أن تكون 7 أحرف على الأقل"),
     phone: z.string().optional(),
     address: z.string().optional(),
     city: z.string().optional(),
