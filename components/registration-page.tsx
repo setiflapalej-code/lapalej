@@ -72,7 +72,7 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
 
   const isFormValid = useMemo(() => {
     const emailOk = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email.trim())
-    const phoneOk = /^\d{10}$/.test(formData.associationPhone.trim())
+    const phoneOk = /^\d{9,10}$/.test(formData.associationPhone.trim())
     const passOk = formData.password.length >= 7
     const passMatchOk = formData.password === formData.confirmPassword
     return (
@@ -137,8 +137,8 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     }
     if (!formData.associationPhone.trim()) {
       newErrors.associationPhone = "رقم هاتف الجمعية مطلوب"
-    } else if (!/^\d{10}$/.test(formData.associationPhone.trim())) {
-      newErrors.associationPhone = "رقم الهاتف يجب أن يتكون من 10 أرقام"
+    } else if (!/^\d{9,10}$/.test(formData.associationPhone.trim())) {
+      newErrors.associationPhone = "رقم الهاتف يجب أن يتكون من 9 أو 10 أرقام"
     }
     if (!formData.password) {
       newErrors.password = "كلمة المرور مطلوبة"

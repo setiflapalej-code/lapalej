@@ -16,7 +16,7 @@ export const RegisterAssociationSchema = z.object({
     password: z
         .string()
         .min(7, "كلمة المرور يجب أن تكون 7 أحرف على الأقل"),
-    phone: z.string().optional(),
+    phone: z.string().regex(/^\d{9,10}$/, "رقم الهاتف يجب أن يتكون من 9 أو 10 أرقام").optional(),
     address: z.string().optional(),
     city: z.string().optional(),
     wilaya: z.string().optional(),
@@ -24,11 +24,11 @@ export const RegisterAssociationSchema = z.object({
     description: z.string().optional(),
     institution_name: z.string().min(1, "اسم الهيئة مطلوب"),
     president_name: z.string().min(1, "اسم رئيس الجمعية مطلوب"),
-    president_phone: z.string().optional(),
+    president_phone: z.string().regex(/^\d{9,10}$/, "رقم الهاتف يجب أن يتكون من 9 أو 10 أرقام").optional(),
     secretary_name: z.string().min(1, "اسم الأمين العام مطلوب"),
-    secretary_phone: z.string().optional(),
+    secretary_phone: z.string().regex(/^\d{9,10}$/, "رقم الهاتف يجب أن يتكون من 9 أو 10 أرقام").optional(),
     clerk_name: z.string().min(1, "اسم الكاتب العام مطلوب"),
-    clerk_phone: z.string().optional(),
+    clerk_phone: z.string().regex(/^\d{9,10}$/, "رقم الهاتف يجب أن يتكون من 9 أو 10 أرقام").optional(),
     office_approval_url: z.string().optional(),
 })
 export type RegisterAssociationDTO = z.infer<typeof RegisterAssociationSchema>
