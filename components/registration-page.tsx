@@ -71,23 +71,25 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
 
 
   const isFormValid = useMemo(() => {
+    const phoneRegex = /^\d{9,10}$/
     const emailOk = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email.trim())
-    const phoneOk = /^\d{9,10}$/.test(formData.associationPhone.trim())
+    const phoneOk = phoneRegex.test(formData.associationPhone.trim())
+    const presidentPhoneOk = phoneRegex.test(formData.presidentPhone.trim())
+    const secretaryPhoneOk = phoneRegex.test(formData.secretaryPhone.trim())
+    const clerkPhoneOk = phoneRegex.test(formData.clerkPhone.trim())
     const passOk = formData.password.length >= 7
     const passMatchOk = formData.password === formData.confirmPassword
     return (
       formData.associationName.trim() !== "" &&
       formData.organizationName.trim() !== "" &&
       formData.presidentName.trim() !== "" &&
-      formData.presidentPhone.trim() !== "" &&
       formData.secretaryName.trim() !== "" &&
       formData.secretaryPhone.trim() !== "" &&
       formData.clerkName.trim() !== "" &&
-      formData.clerkPhone.trim() !== "" &&
       formData.wilaya.trim() !== "" &&
       formData.city.trim() !== "" &&
       formData.motivation.trim() !== "" &&
-      emailOk && phoneOk && passOk && passMatchOk
+      emailOk && phoneOk && presidentPhoneOk && secretaryPhoneOk && clerkPhoneOk && passOk && passMatchOk
     )
   }, [formData])
 
@@ -118,15 +120,29 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
   }
 
   const validateForm = () => {
+    const phoneRegex = /^\d{9,10}$/
+    const phoneMsg = "رقم الهاتف يجب أن يتكون من 9 أو 10 أرقام"
     const newErrors: Record<string, string> = {}
     if (!formData.associationName.trim()) newErrors.associationName = "اسم الجمعية مطلوب"
     if (!formData.organizationName.trim()) newErrors.organizationName = "اسم الهيئة مطلوب"
     if (!formData.presidentName.trim()) newErrors.presidentName = "اسم رئيس الجمعية مطلوب"
-    if (!formData.presidentPhone.trim()) newErrors.presidentPhone = "رقم هاتف الرئيس مطلوب"
+    if (!formData.presidentPhone.trim()) {
+      newErrors.presidentPhone = "رقم هاتف الرئيس مطلوب"
+    } else if (!phoneRegex.test(formData.presidentPhone.trim())) {
+      newErrors.presidentPhone = phoneMsg
+    }
     if (!formData.secretaryName.trim()) newErrors.secretaryName = "اسم أمين المال مطلوب"
-    if (!formData.secretaryPhone.trim()) newErrors.secretaryPhone = "رقم هاتف أمين المال مطلوب"
+    if (!formData.secretaryPhone.trim()) {
+      newErrors.secretaryPhone = "رقم هاتف أمين المال مطلوب"
+    } else if (!phoneRegex.test(formData.secretaryPhone.trim())) {
+      newErrors.secretaryPhone = phoneMsg
+    }
     if (!formData.clerkName.trim()) newErrors.clerkName = "اسم الكاتب العام مطلوب"
-    if (!formData.clerkPhone.trim()) newErrors.clerkPhone = "رقم هاتف الكاتب العام مطلوب"
+    if (!formData.clerkPhone.trim()) {
+      newErrors.clerkPhone = "رقم هاتف الكاتب العام مطلوب"
+    } else if (!phoneRegex.test(formData.clerkPhone.trim())) {
+      newErrors.clerkPhone = phoneMsg
+    }
     if (!formData.wilaya.trim()) newErrors.wilaya = "الولاية مطلوبة"
     if (!formData.city.trim()) newErrors.city = "البلدية مطلوبة"
     if (!formData.motivation.trim()) newErrors.motivation = "الدافع لإنشاء الجمعية مطلوب"
@@ -137,8 +153,8 @@ export function RegistrationPage({ initialSession = null }: { initialSession?: A
     }
     if (!formData.associationPhone.trim()) {
       newErrors.associationPhone = "رقم هاتف الجمعية مطلوب"
-    } else if (!/^\d{9,10}$/.test(formData.associationPhone.trim())) {
-      newErrors.associationPhone = "رقم الهاتف يجب أن يتكون من 9 أو 10 أرقام"
+    } else if (!phoneRegex.test(formData.associationPhone.trim())) {
+      newErrors.associationPhone = phoneMsg
     }
     if (!formData.password) {
       newErrors.password = "كلمة المرور مطلوبة"
