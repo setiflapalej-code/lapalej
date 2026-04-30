@@ -1492,46 +1492,46 @@ export function AdminDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row" dir="rtl">
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-64 bg-white shadow-lg border-l border-gray-200 z-40">
-        <div className="p-6 border-b border-gray-200">
+      <div className="fixed right-0 bottom-0 md:top-0 w-full md:h-full md:w-64 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-lg border-t md:border-t-0 md:border-l border-gray-200 z-50 flex flex-col overflow-hidden">
+        <div className="hidden md:block p-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-amber-600">لوحة التحكم</h1>
           <p className="text-sm text-gray-600">الرابطة الولائية</p>
         </div>
 
-        <nav className="p-4 space-y-2">
+        <nav className="flex-1 flex overflow-x-auto md:overflow-y-auto md:flex-col p-2 md:p-4 gap-2 md:gap-0 md:space-y-2 items-center md:items-stretch [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {sidebarItems.map((item) => {
             const Icon = item.icon
             return (
               <Button
                 key={item.id}
                 variant={activeSection === item.id ? "default" : "ghost"}
-                className={`w-full justify-start ${activeSection === item.id ? "bg-amber-600 hover:bg-amber-700 text-white" : "hover:bg-gray-100"
+                className={`flex-shrink-0 md:w-full justify-center md:justify-start ${activeSection === item.id ? "bg-amber-600 hover:bg-amber-700 text-white" : "hover:bg-gray-100"
                   }`}
                 onClick={() => setActiveSection(item.id)}
               >
-                <Icon className="ml-2 h-4 w-4" />
-                {item.label}
+                <Icon className="md:ml-2 h-5 w-5 md:h-4 md:w-4" />
+                <span className="hidden md:inline">{item.label}</span>
               </Button>
             )
           })}
 
-          <div className="pt-4 border-t border-gray-200 mt-4">
+          <div className="flex-shrink-0 pt-0 md:pt-4 border-l md:border-l-0 md:border-t border-gray-200 md:mt-4 pl-2 md:pl-0">
             <Button
               variant="ghost"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="w-full justify-center md:justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
               onClick={() => setIsLogoutDialogOpen(true)}
             >
-              <LogOut className="ml-2 h-4 w-4" />
-              تسجيل الخروج
+              <LogOut className="md:ml-2 h-5 w-5 md:h-4 md:w-4" />
+              <span className="hidden md:inline">تسجيل الخروج</span>
             </Button>
           </div>
         </nav>
       </div>
 
       {/* Main Content */}
-      <div className="mr-64 p-6">
+      <div className="w-full md:w-auto md:flex-1 md:mr-64 p-4 md:p-6 mb-20 md:mb-0 overflow-x-hidden min-w-0">
 
         {activeSection === "dashboard" && (
           <div className="space-y-6">
@@ -1542,7 +1542,7 @@ export function AdminDashboard({
                 return (
                   <Card key={index} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                           <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
@@ -1620,7 +1620,7 @@ export function AdminDashboard({
                     }
 
                     return sortedTimeline.map((activity, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center space-x-3 space-x-reverse">
                           <Badge
                             variant={
@@ -1659,7 +1659,7 @@ export function AdminDashboard({
         {activeSection === "activities" && (
           <div className="space-y-6">
             {/* Header with Add Button */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between md:items-center">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">
                   {sidebarItems.find((item) => item.id === activeSection)?.label}
@@ -1682,7 +1682,7 @@ export function AdminDashboard({
                     {/* Activity Template Selector */}
                     <div className="space-y-2">
                       <Label className="text-base font-semibold">نمط النشاط</Label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {ACTIVITY_TEMPLATES.map((tmpl) => (
                           <button
                             key={tmpl.value}
@@ -1697,7 +1697,7 @@ export function AdminDashboard({
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="add-title">عنوان النشاط</Label>
                         <Input id="add-title" value={newActivity.title} onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })} placeholder="مثال: المخيم الصيفي" />
@@ -1721,7 +1721,7 @@ export function AdminDashboard({
                       <Label htmlFor="add-description">وصف النشاط</Label>
                       <Textarea id="add-description" value={newActivity.description} onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })} placeholder="وصف مفصل عن النشاط وأهدافه" rows={3} />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2" >
                         <Label htmlFor="add-date">تاريخ النشاط</Label>
                         <Input id="add-date" type="date" value={newActivity.date} onChange={(e) => setNewActivity({ ...newActivity, date: e.target.value })} />
@@ -1731,7 +1731,7 @@ export function AdminDashboard({
                         <Input id="add-location" value={newActivity.location} onChange={(e) => setNewActivity({ ...newActivity, location: e.target.value })} placeholder="مثال: مركز الجمعية" />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="add-duration">المدة</Label>
                         <Input id="add-duration" value={newActivity.duration} onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })} placeholder="مثال: 3 أيام" />
@@ -1855,7 +1855,7 @@ export function AdminDashboard({
                           <div className="flex items-center"><MapPin className="h-4 w-4 ml-2 flex-shrink-0" />{activity.location}</div>
                           <div className="flex items-center"><Clock className="h-4 w-4 ml-2 flex-shrink-0" />{activity.duration}</div>
                         </div>
-                        <div className="flex justify-between items-center pt-2 border-t">
+                        <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between md:items-center pt-2 border-t">
                           {templateNeedsReg(activity.activityTemplate) && (
                             <span className="text-xs text-blue-600 font-medium flex items-center gap-1">
                               <Users className="h-3 w-3" />{regs.length} جمعية
@@ -1894,7 +1894,7 @@ export function AdminDashboard({
                   {/* Template Selector */}
                   <div className="space-y-2">
                     <Label className="text-base font-semibold">نمط النشاط</Label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {ACTIVITY_TEMPLATES.map((tmpl) => (
                         <button
                           key={tmpl.value}
@@ -1908,7 +1908,7 @@ export function AdminDashboard({
                       ))}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>عنوان النشاط</Label>
                       <Input value={newActivity.title} onChange={(e) => setNewActivity({ ...newActivity, title: e.target.value })} />
@@ -1932,7 +1932,7 @@ export function AdminDashboard({
                     <Label>وصف النشاط</Label>
                     <Textarea value={newActivity.description} onChange={(e) => setNewActivity({ ...newActivity, description: e.target.value })} rows={3} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>تاريخ النشاط</Label>
                       <Input type="date" value={newActivity.date} onChange={(e) => setNewActivity({ ...newActivity, date: e.target.value })} />
@@ -1964,7 +1964,7 @@ export function AdminDashboard({
                       )}
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>المدة</Label>
                       <Input value={newActivity.duration} onChange={(e) => setNewActivity({ ...newActivity, duration: e.target.value })} />
@@ -2105,7 +2105,7 @@ export function AdminDashboard({
                   {viewingRegistrationsActivity && getActivityRegistrations(viewingRegistrationsActivity.id).map((reg) => (
                     <div key={reg.id} className="border rounded-lg overflow-hidden">
                       {/* Registration Row */}
-                      <div className="flex items-center justify-between p-4 bg-gray-50">
+                      <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between p-4 bg-gray-50">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
                             <Building2 className="h-5 w-5 text-amber-600" />
@@ -2230,7 +2230,7 @@ export function AdminDashboard({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي الرسائل</p>
                       <p className="text-2xl font-bold text-gray-900">{dashboardStats?.messages.total ?? messages.length}</p>
@@ -2241,7 +2241,7 @@ export function AdminDashboard({
               </Card>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">غير مقروءة</p>
                       <p className="text-2xl font-bold text-red-600">
@@ -2254,7 +2254,7 @@ export function AdminDashboard({
               </Card>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">تم الرد عليها</p>
                       <p className="text-2xl font-bold text-green-600">
@@ -2267,7 +2267,7 @@ export function AdminDashboard({
               </Card>
               <Card className="p-6">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">عالية الأولوية</p>
                       <p className="text-2xl font-bold text-orange-600">
@@ -2383,7 +2383,7 @@ export function AdminDashboard({
                 </DialogHeader>
                 {selectedMessage && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                       <div>
                         <Label className="text-sm font-medium text-gray-600">البريد الإلكتروني</Label>
                         <p className="text-sm">{selectedMessage.email}</p>
@@ -2528,7 +2528,7 @@ export function AdminDashboard({
                       <DialogTitle>اختر صيغة التصدير</DialogTitle>
                       <DialogDescription>سيتم تصدير جميع الشراكات المقبولة</DialogDescription>
                     </DialogHeader>
-                    <div className="grid grid-cols-2 gap-4 py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                       <Button
                         variant="outline"
                         className="h-24 flex flex-col gap-2 bg-transparent border-2 hover:border-red-400 hover:bg-red-50"
@@ -2609,7 +2609,7 @@ export function AdminDashboard({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي الطلبات</p>
                       <p className="text-2xl font-bold text-gray-900">{dashboardStats?.associations.total ?? partnerships.filter(p => p.status !== "rejected").length}</p>
@@ -2620,7 +2620,7 @@ export function AdminDashboard({
               </Card>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">قيد المراجعة</p>
                       <p className="text-2xl font-bold text-yellow-600">
@@ -2633,7 +2633,7 @@ export function AdminDashboard({
               </Card>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">شراكات معتمدة</p>
                       <p className="text-2xl font-bold text-green-600">
@@ -2660,7 +2660,7 @@ export function AdminDashboard({
                     {rejectedPartnerships.map((p) => {
                       const remaining = p.rejectedAt ? getRemainingDays(p.rejectedAt) : GRACE_DAYS
                       return (
-                        <div key={p.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200">
+                        <div key={p.id} className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between p-3 bg-white rounded-lg border border-orange-200">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                               <Building2 className="h-5 w-5 text-orange-500" />
@@ -2854,7 +2854,7 @@ export function AdminDashboard({
                     </div>
 
                     {/* Status Info */}
-                    <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                       <div>
                         <Label className="text-sm font-medium text-gray-600">حالة الطلب</Label>
                         <Badge
@@ -3061,7 +3061,7 @@ export function AdminDashboard({
                       <DialogDescription>املأ البيانات التالية لإضافة مقال جديد</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="news-title">عنوان المقال</Label>
                           <Input
@@ -3092,7 +3092,7 @@ export function AdminDashboard({
                           rows={8}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="news-author">الكاتب</Label>
                           <Input
@@ -3188,7 +3188,7 @@ export function AdminDashboard({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي المقالات</p>
                       <p className="text-2xl font-bold text-gray-900">{dashboardStats?.news.total ?? newsArticles.length}</p>
@@ -3199,7 +3199,7 @@ export function AdminDashboard({
               </Card>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">منشورة</p>
                       <p className="text-2xl font-bold text-green-600">
@@ -3212,7 +3212,7 @@ export function AdminDashboard({
               </Card>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">مسودات</p>
                       <p className="text-2xl font-bold text-yellow-600">
@@ -3225,7 +3225,7 @@ export function AdminDashboard({
               </Card>
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-0 md:items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">إجمالي المشاهدات</p>
                       <p className="text-2xl font-bold text-purple-600">
@@ -3281,7 +3281,7 @@ export function AdminDashboard({
                           ))}
                         </div>
 
-                        <div className="flex justify-between items-center pt-2 border-t">
+                        <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between md:items-center pt-2 border-t">
                           <Button size="sm" variant="outline" onClick={() => setSelectedNews(article)}>
                             <EyeIcon className="h-4 w-4 ml-1" />
                             عرض
@@ -3348,7 +3348,7 @@ export function AdminDashboard({
                   <DialogDescription>تعديل بيانات المقال</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="edit-news-title">عنوان المقال</Label>
                       <Input
@@ -3395,7 +3395,7 @@ export function AdminDashboard({
                       rows={8}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="edit-news-author">الكاتب</Label>
                       <Input
@@ -3530,7 +3530,7 @@ export function AdminDashboard({
                       ))}
                     </div>
 
-                    <div className="flex justify-between items-center pt-4 border-t">
+                    <div className="flex flex-col md:flex-row gap-4 md:gap-0 justify-between md:items-center pt-4 border-t">
                       <div className="flex gap-2">
                         {selectedNews.status === "draft" && (
                           <Button
